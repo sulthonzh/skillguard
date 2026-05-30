@@ -1,0 +1,1 @@
+{"version":3,"file":"skill-detector.d.ts","sourceRoot":"","sources":["../src/skill-detector.ts"],"names":[],"mappings":"AAIA,OAAO,EAAE,SAAS,EAA0B,MAAM,SAAS,CAAC;AAE5D,qBAAa,aAAa;IACxB,OAAO,CAAC,QAAQ,CAAC,aAAa,CAM5B;IAEI,YAAY,CAAC,SAAS,EAAE,MAAM,GAAG,OAAO,CAAC,SAAS,EAAE,CAAC;YAoB7C,aAAa;YA6Bb,cAAc;IA6B5B,OAAO,CAAC,aAAa;CAuBtB"}
