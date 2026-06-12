@@ -1,151 +1,101 @@
-# skillguard - Security Scanner for AI Agent Skills
+# skillguard
 
-The security scanner for AI agent skills. Detects dangerous patterns, permission conflicts, and security risks in skill definitions before you install them.
+Validate AI skill/agent definitions before they blow up in production.
 
-## Why skillguard?
+You know the drill — you write an agent skill definition, deploy it, and then realize the schema is wrong, required fields are missing, or the tool references don't exist. `skillguard` catches that stuff before you ship.
 
-The AI coding agent skills ecosystem is exploding, but there's zero security tooling. Skills are markdown/config files that get executed with full shell/file/network access - and you have no idea what they actually do.
+## What it does
 
-skillguard scans skill definitions and flags:
-- 🔴 Dangerous patterns (shell injection, file exfiltration, network calls)
-- ⚠️ Permission mapping (exactly what each skill can access)
-- 🔥 Trust scoring (green/yellow/red based on capability surface)
-- 📋 Diff mode (compare skill versions)
-- 💥 Conflict detection (contradictory instructions between skills)
+- Validates skill/agent definition files (JSON or YAML)
+- Checks required fields, types, and structure
+- Validates tool references exist and are properly configured
+- Detects circular dependencies between skills
+- Scores overall health (A-F grading)
+- CI-friendly — exit codes and JSON output
 
-## Installation
+## Install
 
 ```bash
 npm install -g skillguard
 ```
 
-Or use directly:
-
-```bash
-npx skillguard ./skills
-```
-
 ## Usage
 
-### Scan a skills directory
+### CLI
 
 ```bash
-skillguard ./my-skills
+# Validate a single skill file
+skillguard check ./skills/my-skill.json
+
+# Validate all skills in a directory
+skillguard check ./skills/
+
+# CI mode — fail if score below threshold
+skillguard check ./skills/ --min-score B
+
+# JSON output
+skillguard check ./skills/ --format json
 ```
 
-### Scan a specific skill file
+### Programmatic
 
-```bash
-skillguard ./my-skills/skill-name.md
+```js
+const { validate, score } = require('skillguard');
+
+const result = validate('./skills/my-skill.json');
+console.log(result.errors);   // [{ field, message, severity }]
+console.log(result.warnings); // [{ field, message }]
+console.log(score(result));   // { grade: 'A', points: 95/100 }
 ```
 
-### Compare skill versions (diff mode)
+## Skill Schema
 
-```bash
-skillguard diff skill-v1.md skill-v2.md
+Skillguard expects skills to follow this structure (JSON or YAML):
+
+```json
+{
+  "name": "my-skill",
+  "version": "1.0.0",
+  "description": "Does something useful",
+  "tools": ["tool-a", "tool-b"],
+  "input": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string", "description": "Search query" }
+    },
+    "required": ["query"]
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "result": { "type": "string" }
+    }
+  },
+  "dependencies": ["other-skill"],
+  "config": {
+    "timeout": 30000,
+    "retries": 3
+  }
+}
 ```
 
-### Check skills in CI mode (exit 1 if issues found)
+## Checks Performed
 
-```bash
-skillguard --ci ./my-skills
-```
-
-### Quiet mode (only show errors)
-
-```bash
-skillguard --quiet ./my-skills
-```
-
-## Output Examples
-
-### Basic Scan
-```bash
-$ skillguard ./my-skills
-
-🔍 Scanning 5 skills in ./my-skills
-
-🟢 git-workflow.md
-   - Trust score: GREEN (safe file operations only)
-   - Permissions: git operations, file reading
-   - No security risks detected
-
-🟡 code-quality.md
-   - Trust score: YELLOW (network access for linting)
-   - Permissions: file system, network requests
-   - ⚠️  Network access detected for external tools
-
-🔥 auto-approve.md
-   - Trust score: RED (full system access)
-   - Permissions: shell execution, file write, network
-   - 🔴 Risk: Shell execution capability
-   - 🔴 Risk: File system write access
-   - 🔴 Risk: Network communication allowed
-```
-
-### Conflict Detection
-```bash
-$ skillguard ./conflicting-skills
-
-🔍 Scanning 3 skills in ./conflicting-skills
-
-⚠️  CONFLICT DETECTED:
-   "tabs-only.md" requires tabs for indentation
-   "spaces-only.md" requires spaces for indentation
-   → Agent confusion: inconsistent formatting rules
-
-⚠️  TOOL OVERLAP:
-   "git-auto-commit.md" and "git-workflow.md" both register git commit command
-   → Potential duplicate tool registration
-
-💡 MERGE SUGGESTION:
-   "git-auto-commit.md" and "git-workflow.md" share 60% instructions
-   → Consider merging into single comprehensive git skill
-```
-
-## Supported Skill Formats
-
-- **Claude Code Skills**: `SKILL.md` files with tool definitions
-- **Codex Skills**: JSON/YAML skill configurations  
-- **Cursor Rules**: Markdown rule files with shell commands
-- **MCP Configs**: Model Context Protocol configurations
-- **Custom Skills**: Any text-based skill definition
-
-## Security Patterns Detected
-
-| Pattern | Risk Level | Description |
-|---------|------------|-------------|
-| Shell execution (`$()`, ``, `exec`) | 🔴 RED | Remote code execution risk |
-| File write access (`>`, `>>`, `writeFile`) | 🔴 RED | Data destruction/overwrite risk |
-| Network calls (`curl`, `wget`, `fetch`) | 🟡 YELLOW | Data exfiltration risk |
-| API keys/secrets | 🔴 RED | Credential exposure risk |
-| File system access (`/`, `~`, `$HOME`) | 🟡 YELLOW | System access risk |
-| Environment variables (`$VAR`, `${VAR}`) | 🟡 YELLOW | Variable injection risk |
-
-## Development
-
-```bash
-git clone https://github.com/sulthonzh/skillguard
-cd skillguard
-npm install
-npm run dev  # Run in development mode
-npm test     # Run tests
-npm run lint # Lint code
-```
-
-## Roadmap
-
-- [ ] Semantic conflict detection using embeddings
-- [ ] Auto-merge suggestions for compatible skills
-- [ ] Integration with GitHub Skills marketplace
-- [ ] CI/CD plugin for automated scanning
-- [ ] Enterprise policy enforcement
-- [ ] Skill dependency resolution
-
-## Contributing
-
-Found a security pattern we miss? Have ideas for conflict detection? Open an issue or submit a pull request!
+| # | Check | Severity |
+|---|-------|----------|
+| 1 | Required fields present | error |
+| 2 | Name follows naming conventions | warning |
+| 3 | Version is semver | error |
+| 4 | Description is meaningful (not empty/too short) | warning |
+| 5 | Tools array is valid | error |
+| 6 | Input schema is valid | warning |
+| 7 | Output schema is valid | warning |
+| 8 | Dependencies exist (when directory given) | error |
+| 9 | No circular dependencies | error |
+| 10 | Config values are in valid ranges | warning |
+| 11 | No duplicate skill names | error |
+| 12 | File structure is clean | info |
 
 ## License
 
-MIT - see LICENSE file
+MIT
