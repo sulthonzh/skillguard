@@ -301,6 +301,132 @@ test('detects circular deps across files', () => {
   assert.ok(circErrs.length > 0);
 });
 
+console.log('\nYAML edge cases');
+test('parses YAML with flow sequence', () => {
+  const yaml = 'name: flow-skill\nversion: 1.0.0\ndescription: A flow skill\ntools: [alpha, beta]\n';
+  const fp = path.join(TMP, 'flow.yaml');
+  fs.writeFileSync(fp, yaml);
+  const parsed = parseFile(fp);
+  assert.deepStrictEqual(parsed.tools, ['alpha', 'beta']);
+});
+
+test('parses YAML with quoted values', () => {
+  const yaml = 'name: "quoted-skill"\nversion: "2.0.0"\ndescription: "A quoted skill"\n';
+  const fp = path.join(TMP, 'quoted.yaml');
+  fs.writeFileSync(fp, yaml);
+  const parsed = parseFile(fp);
+  assert.strictEqual(parsed.name, 'quoted-skill');
+  assert.strictEqual(parsed.version, '2.0.0');
+});
+
+test('parses YAML with boolean and null', () => {
+  const yaml = 'name: bool-skill\nversion: 1.0.0\ndescription: A bool skill\nenabled: true\ndisabled: false\nmissing: null\n';
+  const fp = path.join(TMP, 'bool.yaml');
+  fs.writeFileSync(fp, yaml);
+  const parsed = parseFile(fp);
+  assert.strictEqual(parsed.enabled, true);
+  assert.strictEqual(parsed.disabled, false);
+  assert.strictEqual(parsed.missing, null);
+});
+
+test('parses YAML with numbers', () => {
+  const yaml = 'name: num-skill\nversion: 1.0.0\ndescription: A num skill\ntimeout: 30000\nrate: 3.14\n';
+  const fp = path.join(TMP, 'num.yaml');
+  fs.writeFileSync(fp, yaml);
+  const parsed = parseFile(fp);
+  assert.strictEqual(parsed.timeout, 30000);
+  assert.strictEqual(parsed.rate, 3.14);
+});
+
+test('parses YAML with comments', () => {
+  const yaml = '# This is a comment\nname: comment-skill\nversion: 1.0.0\ndescription: A comment skill\n';
+  const fp = path.join(TMP, 'comment.yaml');
+  fs.writeFileSync(fp, yaml);
+  const parsed = parseFile(fp);
+  assert.strictEqual(parsed.name, 'comment-skill');
+});
+
+console.log('\nscore edge cases');
+test('score with mix of errors and warnings', () => {
+  const result = score({ errors: [{}], warnings: [{}, {}, {}, {}], info: [] });
+  // 100 - 20 - 20 = 60 → D
+  assert.strictEqual(result.points, 60);
+  assert.strictEqual(result.grade, 'D');
+});
+
+test('score with only info is A', () => {
+  const result = score({ errors: [], warnings: [], info: [{}, {}, {}] });
+  assert.strictEqual(result.grade, 'A');
+  assert.strictEqual(result.points, 100);
+});
+
+console.log('\nvalidateSkill edge cases');
+test('passes with no tools defined', () => {
+  const result = validateSkill({ name: 'skill', version: '1.0.0', description: 'A skill' });
+  // tools is undefined — not an error (optional field)
+  const toolErrs = result.errors.filter(e => e.field.startsWith('tools'));
+  assert.strictEqual(toolErrs.length, 0);
+});
+
+test('validates config with valid values', () => {
+  const result = validateSkill({
+    name: 'skill', version: '1.0.0', description: 'A skill',
+    config: { timeout: 5000, retries: 3 }
+  });
+  const cfgWarns = result.warnings.filter(w => w.field.startsWith('config'));
+  assert.strictEqual(cfgWarns.length, 0);
+});
+
+test('catches string timeout in config', () => {
+  const result = validateSkill({
+    name: 'skill', version: '1.0.0', description: 'A skill',
+    config: { timeout: 'fast' }
+  });
+  const warn = result.warnings.find(w => w.field === 'config.timeout');
+  assert.ok(warn);
+});
+
+test('catches string retries in config', () => {
+  const result = validateSkill({
+    name: 'skill', version: '1.0.0', description: 'A skill',
+    config: { retries: 'many' }
+  });
+  const warn = result.warnings.find(w => w.field === 'config.retries');
+  assert.ok(warn);
+});
+
+test('version with prerelease tag passes', () => {
+  const result = validateSkill({ name: 'skill', version: '1.0.0-beta.1', description: 'A skill' });
+  const verErr = result.errors.find(e => e.field === 'version');
+  assert.ok(!verErr);
+});
+
+test('handles skill with empty dependencies array', () => {
+  const skills = [
+    { skill: { name: 'a', dependencies: [] }, filePath: '/a.json' },
+  ];
+  const errs = checkCircular(skills);
+  assert.strictEqual(errs.length, 0);
+});
+
+test('self-dependency detected as circular', () => {
+  const skills = [
+    { skill: { name: 'self', dependencies: ['self'] }, filePath: '/self.json' },
+  ];
+  const errs = checkCircular(skills);
+  assert.ok(errs.length > 0);
+});
+
+test('three-skill cycle detected', () => {
+  const skills = [
+    { skill: { name: 'a', dependencies: ['b'] }, filePath: '/a.json' },
+    { skill: { name: 'b', dependencies: ['c'] }, filePath: '/b.json' },
+    { skill: { name: 'c', dependencies: ['a'] }, filePath: '/c.json' },
+  ];
+  const errs = checkCircular(skills);
+  assert.ok(errs.length > 0);
+});
+
 cleanup();
 
 console.log(`\n${passed} passed, ${failed} failed`);

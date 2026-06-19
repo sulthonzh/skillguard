@@ -39,13 +39,14 @@ function main() {
   const command = args[0];
 
   if (!command || command === 'help' || command === '--help') {
-    console.log(`skillguard — validate AI skill/agent definitions
+    console.log(`skillguard v${require('../package.json').version} — validate AI skill/agent definitions
 
 Usage:
   skillguard check <file-or-dir>           Validate skill files
   skillguard check <file-or-dir> --verbose Show all findings
   skillguard check <dir> --min-score B     Fail below grade B
   skillguard check <dir> --format json     JSON output
+  skillguard version                       Show version
 
 Supports:
   JSON/YAML skill definitions (.json, .yaml, .yml)
@@ -55,6 +56,11 @@ Examples:
   skillguard check ./skills/my-skill.json
   skillguard check ./skills/ --min-score B
   skillguard check SKILL.md --format json`);
+    process.exit(0);
+  }
+
+  if (command === 'version' || command === '--version' || command === '-V') {
+    console.log(require('../package.json').version);
     process.exit(0);
   }
 

@@ -278,6 +278,25 @@ verbose-tool
   assert(r.stdout.includes('ℹ️') || r.stdout.includes('Optional') || r.stdout.includes('Parameters'));
 });
 
+console.log('\nCLI version flag');
+test('CLI --version shows version', () => {
+  const r = runCLI('--version');
+  const pkg = require('../package.json');
+  assert(r.stdout.trim() === pkg.version, `Expected ${pkg.version}, got ${r.stdout.trim()}`);
+});
+
+test('CLI -V shows version', () => {
+  const r = runCLI('-V');
+  const pkg = require('../package.json');
+  assert(r.stdout.trim() === pkg.version, `Expected ${pkg.version}, got ${r.stdout.trim()}`);
+});
+
+test('CLI version command shows version', () => {
+  const r = runCLI('version');
+  const pkg = require('../package.json');
+  assert(r.stdout.trim() === pkg.version, `Expected ${pkg.version}, got ${r.stdout.trim()}`);
+});
+
 // Cleanup
 fs.rmSync(TMP, { recursive: true });
 

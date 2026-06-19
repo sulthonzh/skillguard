@@ -1,19 +1,41 @@
 {
   "name": "skillguard",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Validate AI skill/agent definitions before they blow up in production",
   "main": "src/index.js",
+  "exports": {
+    ".": {
+      "require": "./src/index.js",
+      "import": "./src/index.js"
+    },
+    "./markdown": {
+      "require": "./src/markdown.js",
+      "import": "./src/markdown.js"
+    }
+  },
   "bin": {
     "skillguard": "src/cli.js"
   },
+  "files": [
+    "src/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "test": "node test/index.test.js"
+    "test": "node test/index.test.js && node test/markdown.test.js",
+    "test:core": "node test/index.test.js",
+    "test:markdown": "node test/markdown.test.js",
+    "prepublishOnly": "npm test"
   },
-  "keywords": ["ai", "agent", "skill", "validation", "schema", "linter", "ci"],
+  "keywords": ["ai", "agent", "skill", "validation", "schema", "linter", "ci", "guard", "lint"],
   "author": "sulthonzh",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/sulthonzh/skillguard"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
