@@ -26,9 +26,21 @@
     "test": "node test/index.test.js && node test/markdown.test.js",
     "test:core": "node test/index.test.js",
     "test:markdown": "node test/markdown.test.js",
-    "prepublishOnly": "npm test"
+    "prepublishOnly": "npm test && npm run lint",
+    "lint": "eslint src/ test/",
+    "test:coverage": "c8 node test/index.test.js && c8 node test/markdown.test.js"
   },
-  "keywords": ["ai", "agent", "skill", "validation", "schema", "linter", "ci", "guard", "lint"],
+  "keywords": [
+    "ai",
+    "agent",
+    "skill",
+    "validation",
+    "schema",
+    "linter",
+    "ci",
+    "guard",
+    "lint"
+  ],
   "author": "sulthonzh",
   "license": "MIT",
   "repository": {
@@ -37,5 +49,10 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "c8": "^11.0.0",
+    "eslint": "^9.39.4",
+    "globals": "^17.7.0"
   }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-const { validate, validateDir, score } = require('./index');
+const { validate, validateDir } = require('./index');
 const { validateMarkdown } = require('./markdown');
 const fs = require('fs');
 const path = require('path');

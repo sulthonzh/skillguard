@@ -37,7 +37,7 @@ const MD_SECTIONS = {
     description: 'How to use the skill',
     validate(content) {
       if (!content.trim()) return { valid: false, message: 'Usage section is empty' };
-      if (!/```|    |\t/.test(content)) return { valid: false, message: 'Usage should include code examples' };
+      if (!/```| {4}|\t/.test(content)) return { valid: false, message: 'Usage should include code examples' };
       return { valid: true };
     }
   },

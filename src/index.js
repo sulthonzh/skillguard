@@ -55,7 +55,7 @@ function parseSimpleYaml(content) {
     if (colonIdx === -1) continue;
 
     const key = trimmed.slice(0, colonIdx).trim();
-    let val = trimmed.slice(colonIdx + 1).trim();
+    const val = trimmed.slice(colonIdx + 1).trim();
 
     if (val === '' || val === '|' || val === '>') {
       // Next lines could be array or nested
@@ -97,7 +97,7 @@ function coerceYamlValue(val) {
 /**
  * Validate a single skill definition
  */
-function validateSkill(skill, options = {}) {
+function validateSkill(skill, _options = {}) {
   const errors = [];
   const warnings = [];
   const info = [];
@@ -339,7 +339,7 @@ function checkCircular(skills) {
  * Score a validation result
  */
 function score(validationResult) {
-  const { errors, warnings, info } = validationResult;
+  const { errors, warnings } = validationResult;
   let points = 100;
 
   // Errors are heavy penalties
