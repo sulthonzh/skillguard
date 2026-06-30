@@ -6,3 +6,8 @@ coverage/
 .env.*
 !.env.example
 !.env.template
+build/
+__pycache__/
+.venv/
+*.egg-info/
+.mypy_cache/
