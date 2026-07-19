@@ -23,7 +23,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/index.test.js && node test/markdown.test.js && node test/index-coverage-gaps.test.js",
+    "test": "node test/index.test.js && node test/markdown.test.js && node test/index-coverage-gaps.test.js && node test/coverage-gaps-2.test.js && node test/cli-coverage.test.js",
     "test:core": "node test/index.test.js",
     "test:markdown": "node test/markdown.test.js",
     "prepublishOnly": "npm test && npm run lint",
