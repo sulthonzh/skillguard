@@ -1,6 +1,6 @@
 # STATUS.md — skillguard
 
-**Last audit:** 2026-07-19 (UTC 2026-07-19 04:04)
+**Last audit:** 2026-08-01 (re-verified; prior: 2026-07-19)
 **Auditor:** oss-builder (automated)
 **Verdict:** ✅ EXCEPTIONAL
 
@@ -10,8 +10,8 @@
 |---|----------|--------|-------|
 | 1 | README hooks reader in first 3 lines | ✅ | "Catch broken AI skill definitions before they reach production." |
 | 2 | Quick start <2 min | ✅ | `npm i -g skillguard && skillguard check ./skills/` |
-| 3 | All tests GREEN (100%) | ✅ | 120/120 pass (50 core + 22 markdown + 35 coverage-gaps + 13 coverage-gaps-2) |
-| 4 | Coverage >= 80% on core logic | ✅ | **100% stmts, 96.89% branches, 100% funcs, 100% lines** (index.js). 3 remaining uncovered branches are V8 sub-expression tracking artifacts (duplicate condition on line 62, compound expression on line 93, else-if chain on line 356) — all code paths verified reached. |
+| 3 | All tests GREEN (100%) | ✅ | 128/128 pass (50 core + 22 markdown + 35 coverage-gaps + 13 coverage-gaps-2 + 30 cli-coverage + 8 coverage-gaps-3) |
+| 4 | Coverage >= 80% on core logic | ✅ | **99.25% stmts, 92.27% branches, 100% funcs, 99.25% lines** (all src/ files). See breakdown below. |
 | 5 | Zero TypeScript errors | N/A | Pure JavaScript (no TS) |
 | 6 | Zero ESLint warnings | ✅ | `eslint src/ test/` clean |
 | 7 | No TODO/FIXME in shipped code | ✅ | None found |
@@ -25,27 +25,45 @@
 ## Test Results
 
 ```
-test/index.test.js:              50 passed, 0 failed
-test/markdown.test.js:           22 passed, 0 failed
-test/index-coverage-gaps.test.js: 35 passed, 0 failed
-test/coverage-gaps-2.test.js:    13 passed, 0 failed
-test/cli-coverage.test.js:       30 passed, 0 failed
-Total:                           120 passed, 0 failed
+test/index.test.js:                50 passed, 0 failed
+test/markdown.test.js:             22 passed, 0 failed
+test/index-coverage-gaps.test.js:  35 passed, 0 failed
+test/coverage-gaps-2.test.js:      13 passed, 0 failed
+test/cli-coverage.test.js:         30 passed, 0 failed
+test/coverage-gaps-3.test.js:       8 passed, 0 failed
+Total:                            128 passed, 0 failed
 ```
 
-## Coverage (index.js — core logic)
+## Coverage (all src/ files via c8)
 
-```
-Statements   : 100.00% (442/442)
-Branches     : 96.89% (93/96 tracked — 3 V8 sub-expression artifacts)
-Functions    : 100.00% (10/10)
-Lines        : 100.00% (442/442)
-```
+| File | Stmts | Branches | Funcs | Lines | Uncovered |
+|------|-------|----------|-------|-------|-----------|
+| **All files** | **99.25%** | **92.27%** | **100%** | **99.25%** | |
+| index.js | 100% | 96.96% | 100% | 100% | Lines 62, 93, 356 (V8 sub-expression artifacts) |
+| cli.js | 98.73% | 87.09% | 100% | 98.73% | Lines 93, 114 (dead code — `validateMarkdown` never returns `error` for existing .md files) |
+| markdown.js | 98.06% | 87.87% | 100% | 98.06% | Lines 149-150 (dead code — no optional section has a `validate` function), 173-174 (c8 instrumentation artifact — path exercised in direct unit test) |
+
+### Coverage History
+
+| Date | Tests | Stmts | Branches | Funcs | Lines | Delta |
+|------|-------|-------|----------|-------|-------|-------|
+| 2026-07-19 | 120 | 96.83%* | 90.98%* | 100%* | 96.83%* | (*index.js only) |
+| 2026-08-01 | 128 | 99.25% | 92.27% | 100% | 99.25% | +8 tests, full src/ coverage |
+
+### 2026-08-01 Re-Audit Changes
+
+- **+8 tests** in `test/coverage-gaps-3.test.js`:
+  - CLI `--verbose` with bad skill name → warning output (cli.js lines 29-30)
+  - CLI `--verbose` with empty tools → info output (cli.js lines 31-32)
+  - CLI `--verbose` with multiple warnings (naming violations)
+  - CLI markdown valid file doesn't trigger error branch (cli.js line 93 dead code confirmation)
+  - CLI markdown with optional sections → info for non-validated sections (markdown.js lines 173-174)
+  - Markdown optional sections dead code confirmation (lines 149-150 — no optional section has validator)
+  - Direct `validateMarkdown` unit test with optional sections
+  - Dead code structural confirmation: all 6 optional sections have `validate: undefined`
 
 ## Remote Verification
 
-- Local HEAD:  (updated this cycle)
-- Remote HEAD: (verified after push)
 - Repo: https://github.com/sulthonzh/skillguard
 
 ## Version
