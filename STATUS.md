@@ -1,6 +1,6 @@
 # STATUS.md — skillguard
 
-**Last audit:** 2026-08-04 (re-verified; prior: 2026-08-01)
+**Last audit:** 2026-08-06 (re-verified; prior: 2026-08-04)
 **Auditor:** oss-builder (automated)
 **Verdict:** ✅ EXCEPTIONAL
 
