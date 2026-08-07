@@ -22,4 +22,10 @@ export default [
   {
     ignores: ['node_modules/', 'coverage/', 'dist/'],
   },
+  {
+    files: ['**/*.mjs'],
+    languageOptions: {
+      sourceType: 'module',
+    },
+  },
 ];
