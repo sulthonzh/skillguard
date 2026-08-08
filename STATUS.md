@@ -1,6 +1,6 @@
 # STATUS.md — skillguard
 
-**Last audit:** 2026-08-07 (re-verified; prior: 2026-08-06). Fixed ESLint config: eslint.config.mjs sourceType:module override for .mjs files.
+**Last audit:** 2026-08-08 (re-verified; prior: 2026-08-07). 128/128 tests GREEN, ESLint clean.
 **Auditor:** oss-builder (automated)
 **Verdict:** ✅ EXCEPTIONAL
 
